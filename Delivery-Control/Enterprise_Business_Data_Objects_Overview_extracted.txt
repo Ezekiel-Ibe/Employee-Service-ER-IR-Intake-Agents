@@ -1,0 +1,570 @@
+Enterprise Business
+Data Objects
+High level overview of the object model and its relationships
+Model
+fabric_enterprise_business_model
+Version
+1.0.0
+Status
+Active
+
+Prepared as a developer and stakeholder orientation document
+
+
+1. Executive summary
+The enterprise business data model provides a system agnostic view of the information needed to represent the organisation. It groups information into stable business objects such as Party, Customer, Supplier, Product, Worker, Asset, Order, Invoice, Payment and Journal Entry. Each object has its own identity, lifecycle and relationships to other objects.
+Core design idea
+Shared objects are defined once then reused across business processes. Customer, Supplier and Worker are roles linked to Party. Product, Location, Organisation, Currency, Calendar and Status provide common context. Transactions record events such as orders, invoices, payments, stock movements, work, payroll and accounting postings.
+
+
+The current active scope is organised into six vertical slices: Order to Cash, Procure to Pay, Inventory and Logistics, Finance and Performance, Asset and Maintenance, plus Hire to Retire. Shared reference data connects these slices. The model uses informational foreign keys, which means relationships must be validated through loading and quality controls rather than assumed to be enforced by the platform.
+2. Business object families
+Family
+Example objects
+Role in the model
+
+Foundation
+Party, Organisation, Location
+Stable structures that identify participants, the enterprise and places.
+
+Reference
+Currency, Exchange Rate, Unit of Measure, Business Calendar, Country, Status
+Controlled values used across multiple domains.
+
+Master
+Customer, Supplier, Product, Asset, Worker, Position, Organisation Unit, Financial Account, Inventory Item, Maintenance Plan
+Reusable business objects with a managed lifecycle.
+
+Transaction
+Orders, invoices, payments, shipments, work orders, employment, absence, payroll, journals, budgets and forecasts
+Records of business activity or governed decisions.
+
+Snapshot
+Inventory Balance
+A point in time position rather than a movement.
+
+Governance
+Policy, Approval, Audit Event
+Controls, decision evidence and traceability linked to business objects.
+
+
+3. Shared enterprise spine
+The shared enterprise spine gives all six vertical slices a common language. These objects prevent each process from creating its own incompatible version of the same concept.
+Object
+Business purpose
+How it connects
+
+Party
+A person or organisation participating in a business relationship
+Customer, Supplier and Worker roles link to Party.
+
+Organisation
+A legal entity or business unit within the enterprise group
+Owns or contextualises accounts, payroll, locations, budgets and forecasts.
+
+Location
+A physical or logical place where business activities occur
+Used by inventory, shipments, assets and work orders.
+
+Product
+Something offered sold purchased stocked manufactured maintained or retired
+Referenced by orders, inventory, shipments, assets and quality events.
+
+Currency and Exchange Rate
+Monetary denomination plus conversion between currencies.
+Used across orders, invoices, payments, budgets, forecasts and payroll.
+
+Business Calendar
+A date and period reference for financial and operational reporting.
+Supports due dates, accounting periods, payroll periods and operational working days.
+
+Status
+A governed state value for a business object.
+Provides consistent lifecycle states across master and transaction objects.
+
+
+4. Relationship overview
+Party
+PLAYS ROLE AS
+Customer / Supplier / Worker
+
+Party provides common identity. The role object holds process-specific information.
+
+
+Organisation
+OWNS OR CONTEXTUALISES
+Location / Account / Payroll
+
+Organisation anchors legal entity and business unit context.
+
+
+Product
+IS USED BY
+Order / Inventory / Shipment / Asset
+
+Product acts as a conformed object across commercial and operational processes.
+
+
+Policy
+GOVERNS
+Business Object or Event
+
+Approval and Audit Event provide decision evidence and traceability.
+
+
+5. Order to Cash
+Order to Cash represents the commercial flow from a customer commitment through billing and settlement.
+Object group
+Connection
+
+Party and Customer
+Customer is the commercial role played by a Party.
+
+Product
+Identifies the product or service being sold.
+
+Sales Order
+Records the customer commitment.
+
+Sales Order Line
+Records each product or service line on the order.
+
+Invoice and Invoice Line
+Record the legal or accounting charge plus its accounted lines.
+
+Payment
+Records the receipt or transfer of funds.
+
+Payment Allocation
+Links a payment amount to the invoice it settles.
+
+
+Customer
+PLACES
+Sales Order
+
+One customer can place many sales orders.
+
+
+Sales Order
+CONTAINS
+Sales Order Line
+
+One order contains one or more product or service lines.
+
+
+Invoice
+IS SETTLED THROUGH
+Payment Allocation
+
+The allocation resolves many to many settlement between payments and invoices.
+
+
+6. Procure to Pay
+Procure to Pay represents the flow from a supplier commitment through receipt, invoicing and payment.
+Object group
+Connection
+
+Party and Supplier
+Supplier is the commercial role played by a Party.
+
+Product
+Identifies the good or service being purchased.
+
+Purchase Order
+Records the governed instruction issued to a supplier.
+
+Purchase Order Line
+Records each product or service line.
+
+Invoice and Invoice Line
+Record the supplier charge and ledger classification.
+
+Payment
+Records the financial settlement.
+
+
+Supplier
+RECEIVES
+Purchase Order
+
+One supplier can receive many purchase orders.
+
+
+Purchase Order
+CONTAINS
+Purchase Order Line
+
+Each line references the purchased product or service.
+
+
+Supplier Invoice
+IS SETTLED BY
+Payment
+
+The payment is linked to the supplier role through Party context.
+
+
+7. Inventory and Logistics
+Inventory and Logistics connects products, locations, stock positions, stock movements and outbound or inbound shipments.
+Object
+Connection
+
+Inventory Item
+Connects Product to a governed inventory context.
+
+Inventory Balance
+Stores the quantity held at a location at a point in time.
+
+Inventory Transaction
+Records stock movement or adjustment.
+
+Shipment
+Records a governed movement from an origin location to a destination location.
+
+Shipment Line
+Records the product and quantity moved within a shipment.
+
+
+Product + Location
+DEFINE
+Inventory Item
+
+The reusable item context supports balances and movements.
+
+
+Inventory Transaction
+CHANGES
+Inventory Balance
+
+Movements explain changes in stock position over time.
+
+
+Shipment
+CONTAINS
+Shipment Line
+
+Each shipment line references Product and its quantity.
+
+
+8. Finance and Performance
+Finance and Performance connects the enterprise structure to the chart of accounts, accounting postings, approved plans and projected outcomes.
+Object
+Connection
+
+Organisation
+Provides the legal entity or business unit context.
+
+Financial Account
+Provides the governed chart of accounts classification.
+
+Journal Entry
+Groups a balanced accounting event.
+
+Journal Line
+Records an individual debit or credit posting.
+
+Budget
+Stores an approved financial plan by account, organisation, period and scenario.
+
+Forecast
+Stores a projected outcome by account, organisation, period and scenario.
+
+
+Journal Entry
+CONTAINS
+Journal Line
+
+The entry provides posting context. Lines carry debit or credit values.
+
+
+Journal Line
+POSTS TO
+Financial Account
+
+Every posting must reference a valid account.
+
+
+Budget / Forecast
+IS ANALYSED AGAINST
+Actual Journal Results
+
+Common account, organisation, period and currency dimensions enable comparison.
+
+
+9. Asset and Maintenance
+Asset and Maintenance represents controlled resources, their planned maintenance, executed work and quality outcomes.
+Object
+Connection
+
+Asset
+Represents the controlled operational or economic resource.
+
+Maintenance Plan
+Defines recurring or condition-based maintenance for an asset.
+
+Work Order
+Records the governed instruction to perform work on an asset or location.
+
+Quality Event
+Records an inspection or non-conformance involving a product or asset.
+
+Location
+Provides the place where the asset resides or work occurs.
+
+Product
+Can identify the asset model or product involved in a quality event.
+
+
+Asset
+IS GOVERNED BY
+Maintenance Plan
+
+A plan defines the maintenance strategy and next required activity.
+
+
+Asset
+IS MAINTAINED THROUGH
+Work Order
+
+Work orders capture requested, planned and actual work.
+
+
+Quality Event
+AFFECTS
+Asset or Product
+
+Quality events provide inspection and non-conformance traceability.
+
+
+10. Hire to Retire
+Hire to Retire represents the worker, their place in the organisation, employment assignments, absence, compensation and payroll results.
+Object
+Connection
+
+Worker
+Represents an individual employed or contracted by the enterprise.
+
+Position
+Represents a defined role or seat.
+
+Organisation Unit
+Provides the organizational hierarchy containing positions.
+
+Employment
+Connects Worker to Position for an effective period.
+
+Absence
+Records a period where a worker is unavailable.
+
+Compensation
+Records an effective-dated remuneration element.
+
+Payroll Run
+Defines the payroll processing cycle.
+
+Payroll Line
+Records a pay element for a worker within a payroll run.
+
+
+Worker
+IS ASSIGNED THROUGH
+Employment
+
+Employment links the worker to a position for a defined period.
+
+
+Position
+BELONGS TO
+Organisation Unit
+
+The organisation unit provides hierarchy and reporting context.
+
+
+Payroll Run
+CONTAINS
+Payroll Line
+
+Each line records an earning, deduction or net result for a worker.
+
+
+11. Governance and traceability
+Control object
+Purpose
+
+Policy
+Defines the governing rule or requirement.
+
+Approval
+Records a decision against a specific business object.
+
+Audit Event
+Records a change or access event for traceability.
+
+Source identifiers
+Preserve the system and source record from which a Fabric record was obtained.
+
+Effective dating
+Supports historical versions of master and reference objects.
+
+Data classification and quality status
+Provide governance state for publication and use.
+
+
+Relationship enforcement
+Foreign keys are informational in the active model. Pipelines and data quality checks must therefore validate that parent objects exist, dates are valid and financial or quantity reconciliations balance.
+
+
+12. How developers should navigate the model
+Step
+Action
+Developer interpretation
+
+1
+Start with the business object
+Identify the object needed by the process, for example Customer, Product, Invoice or Worker.
+
+2
+Follow the canonical identifier
+Use the object identifier to connect transactions and master data.
+
+3
+Use shared reference objects
+Resolve currency, status, calendar, country and unit values through governed references.
+
+4
+Respect the grain
+Keep headers, lines, events, balances and snapshots separate.
+
+5
+Preserve source traceability
+Retain the source system, source record identifier and ingestion metadata.
+
+6
+Validate relationships
+Apply referential, temporal and reconciliation controls during loading.
+
+7
+Publish through Gold and Magenta
+Use Gold for analytical consumption. Use Magenta for approved terms, measures and ontology relationships.
+
+
+13. Simplified enterprise connection map
+Anchor object
+Connected objects
+Enterprise role
+
+Party
+Customer, Supplier, Worker
+Provides common identity across commercial and workforce roles.
+
+Organisation
+Location, Organisation Unit, Financial Account, Payroll Run, Budget, Forecast
+Provides legal entity and organisational context.
+
+Product
+Sales Order Line, Purchase Order Line, Inventory Item, Shipment Line, Asset, Quality Event
+Acts as the common product and service object.
+
+Customer
+Sales Order, Invoice
+Connects demand, billing and receivables.
+
+Supplier
+Purchase Order, Invoice
+Connects procurement, payables and settlement.
+
+Invoice
+Invoice Line, Payment Allocation
+Connects accounting detail to settlement.
+
+Location
+Inventory, Shipment, Asset, Work Order
+Provides operational place context.
+
+Worker
+Employment, Absence, Compensation, Payroll Line
+Provides workforce identity across the employment lifecycle.
+
+Financial Account
+Journal Line, Invoice Line, Budget, Forecast
+Provides common financial classification.
+
+Policy
+Approval, Audit Event, business objects
+Provides governance, decision evidence and traceability.
+
+
+14. Scope and current governance status
+The model configuration is active at version 1.0.0. The business glossary entries remain proposed with owners and stewards recorded as TBD. This document therefore describes the intended high level business model. It does not replace field-level design approval or physical schema validation.
+Area
+Current status
+Interpretation
+
+Model configuration
+Active
+Six vertical slices plus shared reference data.
+
+Business glossary
+Proposed
+Definitions are available. Ownership and stewardship remain TBD.
+
+Relationship enforcement
+Informational
+Integrity requires validation through engineering controls.
+
+History default
+Type 2
+Object-specific treatment may differ for immutable events, snapshots and effective-dated references.
+
+
+Appendix A. Active object inventory
+Vertical slice
+Business objects
+
+Order to Cash Core
+Party, Customer, Product, Sales Order, Sales Order Line, Invoice, Invoice Line, Payment, Payment Allocation
+
+Procure to Pay Core
+Party, Supplier, Product, Purchase Order, Purchase Order Line, Invoice, Invoice Line, Payment
+
+Inventory and Logistics
+Product, Location, Inventory Item, Inventory Balance, Inventory Transaction, Shipment, Shipment Line
+
+Finance and Performance
+Organisation, Financial Account, Journal Entry, Journal Line, Budget, Forecast
+
+Asset and Maintenance
+Asset, Work Order, Maintenance Plan, Quality Event
+
+Hire to Retire
+Worker, Position, Organisation Unit, Employment, Absence, Compensation, Payroll Run, Payroll Line
+
+Shared reference data
+Currency, Exchange Rate, Unit Of Measure, Business Calendar, Country, Status
+
+
+Appendix B. Source basis
+Source
+Use in this document
+
+enterprise_model.yml
+Active model version, vertical slices, reference data and modelling standards.
+
+business-glossary.csv
+Business object definitions, classifications and governance status.
+
+architecture.md
+Layer responsibilities for Silver, Gold and Magenta.
+
+modelling-standard.md
+Entity admission, grain, history, key and record-envelope standards.
+
+decision-log.md
+Approved separation of enterprise data from agent metadata plus architecture decisions.
+
+canonical_entity_model.csv
+Broader discovered entity and attribute evidence. The inferred objects require rationalisation before physical implementation.
+
+Finance OTC and HR with KPMG Velocity, Daily Stand up transcript
+Confirms the intention to present the model through business objects plus their fields while retaining enterprise connectivity.
